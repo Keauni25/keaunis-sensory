@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-labelledby="title">
+  <title id="title">Friendly Lamb Character</title>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#a8f0c6" />
+  <g transform="translate(300,320)">
+    <ellipse cx="0" cy="40" rx="140" ry="100" fill="#ffffff" stroke="#f0f0f8" stroke-width="6" filter="url(#glow)" />
+    <circle cx="-40" cy="-20" r="60" fill="#ffffff" stroke="#f0f0f8" stroke-width="4" />
+    <circle cx="40" cy="-20" r="60" fill="#ffffff" stroke="#f0f0f8" stroke-width="4" />
+
+    <circle cx="-22" cy="-28" r="8" fill="#222" />
+    <circle cx="22" cy="-28" r="8" fill="#222" />
+
+    <path d="M -30 10 Q 0 40 30 10" fill="none" stroke="#333" stroke-width="6" stroke-linecap="round" />
+
+    <ellipse cx="-75" cy="10" rx="18" ry="10" fill="#f8e7d0" />
+    <ellipse cx="75" cy="10" rx="18" ry="10" fill="#f8e7d0" />
+
+    <circle cx="-110" cy="-40" r="22" fill="#fff" />
+    <circle cx="110" cy="-40" r="22" fill="#fff" />
+  </g>
+</svg>

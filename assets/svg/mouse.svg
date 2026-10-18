@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <title>Friendly Mouse Character</title>
+  <rect width="100%" height="100%" fill="#e7f7ff" />
+  <g transform="translate(300,300)">
+    <ellipse cx="0" cy="12" rx="70" ry="48" fill="#fff2e6" stroke="#f3d1c0" stroke-width="4" />
+    <circle cx="-22" cy="-18" r="22" fill="#fff2e6" />
+    <circle cx="22" cy="-18" r="22" fill="#fff2e6" />
+    <circle cx="-10" cy="-22" r="5" fill="#222" />
+    <circle cx="10" cy="-22" r="5" fill="#222" />
+    <ellipse cx="0" cy="0" rx="22" ry="14" fill="#ffb7b7" />
+  </g>
+</svg>
