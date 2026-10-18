@@ -1,431 +1,407 @@
-const lyricSegments = [
-  {
-    text: 'Twinkle, twinkle, little star',
-    duration: 6.2,
-    palette: ['#ffd75d', '#7b68ee', '#ff6b8a'],
-    scene: 'stars'
-  },
-  {
-    text: 'Old MacDonald had a farm',
-    duration: 7.2,
-    palette: ['#ffd75d', '#3ecf8e', '#ff9021'],
-    scene: 'farm'
-  },
-  {
-    text: 'Baa, baa, black sheep',
-    duration: 6.0,
-    palette: ['#1e1f36', '#8ecae6', '#ffd54a'],
-    scene: 'sheep'
-  },
-  {
-    text: 'Itsy bitsy spider climbed up the spout',
-    duration: 6.8,
-    palette: ['#ff6f61', '#ffd166', '#73d2de'],
-    scene: 'spider'
-  },
-  {
-    text: 'Humpty Dumpty sat on a wall',
-    duration: 6.6,
-    palette: ['#fca311', '#ff7b7b', '#ffedd1'],
-    scene: 'humpty'
-  },
-  {
-    text: 'Hickory, dickory, dock',
-    duration: 5.8,
-    palette: ['#38bdf8', '#fda4af', '#a78bfa'],
-    scene: 'clock'
-  }
-];
-
-const animalDefs = {
-  sheep: { color: '#2f2f45', accent: '#ffffff', ear: '#f3d7b8' },
-  cow: { color: '#f5f5f5', accent: '#3a3a3a', ear: '#d7d7d7' },
-  pig: { color: '#ffb3c6', accent: '#ffffff', ear: '#f7d3d9' },
-  chicken: { color: '#f8e59d', accent: '#f08080', ear: '#e7d0a8' },
-  spider: { color: '#4b2d5f', accent: '#f5c2ff', ear: '#9d7cc5' },
-  duck: { color: '#ffd166', accent: '#f0ff52', ear: '#f1c96c' }
-};
-
 const svgNS = 'http://www.w3.org/2000/svg';
-const animalsLayer = document.getElementById('sceneAnimals');
+const sceneCharacters = document.getElementById('sceneCharacters');
+const cloudGroup = document.getElementById('cloudGroup');
+const hillsGroup = document.getElementById('hillsGroup');
 const lyricText = document.getElementById('lyricText');
-const title = document.getElementById('mainTitle');
+const mainTitle = document.getElementById('mainTitle');
 const subtitle = document.getElementById('subtitle');
 
-let activeScene = 0;
-let state = {
-  time: 0,
-  start: 0,
-  currentIndex: 0,
-  phase: 0
+const segments = [
+  { title: 'Keaunis Sensory', subtitle: 'Nursery Rhymes', text: 'Twinkle, twinkle, little star', palette: ['#ffd75d', '#7c6df2', '#ff7e9f'], scene: 'stars' },
+  { title: 'Old MacDonald', subtitle: 'Had a farm', text: 'Old MacDonald had a farm', palette: ['#ffe06d', '#5fd18d', '#ff9d5c'], scene: 'farm' },
+  { title: 'Baa Baa', subtitle: 'Black Sheep', text: 'Baa, baa, black sheep', palette: ['#3a3b6d', '#8ad6ff', '#ffd166'], scene: 'sheep' },
+  { title: 'Itsy Bitsy', subtitle: 'Spider', text: 'Itsy bitsy spider climbed up the spout', palette: ['#ff7f7f', '#ffd166', '#7fd4ff'], scene: 'spider' },
+  { title: 'Humpty Dumpty', subtitle: 'On the wall', text: 'Humpty Dumpty sat on a wall', palette: ['#fca311', '#ff8a80', '#fff0d9'], scene: 'humpty' },
+  { title: 'Hickory Dickory', subtitle: 'Dock', text: 'Hickory, dickory, dock', palette: ['#5cc2ff', '#ff9db4', '#b6a7ff'], scene: 'clock' }
+];
+
+const sceneState = {
+  index: 0,
+  timer: 0,
+  lastFrame: 0,
+  segmentDuration: 7.2
 };
 
-function createAnimal(type, x, y, scale = 1, className = '') {
-  const animal = document.createElementNS(svgNS, 'g');
-  animal.setAttribute('class', `char ${className}`);
-  animal.setAttribute('transform', `translate(${x} ${y}) scale(${scale})`);
+function setTextColors(palette) {
+  mainTitle.setAttribute('fill', palette[0]);
+  subtitle.setAttribute('fill', palette[1]);
+  lyricText.setAttribute('fill', '#ffffff');
+}
+
+function createCloud(x, y, scale, opacity = 1) {
+  const g = document.createElementNS(svgNS, 'g');
+  g.setAttribute('class', 'cloud');
+  g.setAttribute('transform', `translate(${x} ${y}) scale(${scale})`);
+  g.setAttribute('opacity', opacity);
+
+  const circle1 = document.createElementNS(svgNS, 'circle');
+  circle1.setAttribute('cx', '0');
+  circle1.setAttribute('cy', '0');
+  circle1.setAttribute('r', '42');
+  circle1.setAttribute('fill', '#ffffff');
+
+  const circle2 = document.createElementNS(svgNS, 'circle');
+  circle2.setAttribute('cx', '46');
+  circle2.setAttribute('cy', '-12');
+  circle2.setAttribute('r', '36');
+  circle2.setAttribute('fill', '#ffffff');
+
+  const circle3 = document.createElementNS(svgNS, 'circle');
+  circle3.setAttribute('cx', '90');
+  circle3.setAttribute('cy', '8');
+  circle3.setAttribute('r', '30');
+  circle3.setAttribute('fill', '#ffffff');
+
+  const base = document.createElementNS(svgNS, 'rect');
+  base.setAttribute('x', '-18');
+  base.setAttribute('y', '18');
+  base.setAttribute('width', '128');
+  base.setAttribute('height', '42');
+  base.setAttribute('rx', '20');
+  base.setAttribute('fill', '#ffffff');
+
+  g.append(circle1, circle2, circle3, base);
+  return g;
+}
+
+function createHill(x, y, width, height, color) {
+  const g = document.createElementNS(svgNS, 'g');
+  const hill = document.createElementNS(svgNS, 'path');
+  hill.setAttribute('d', `M ${x} ${y} Q ${x + width * 0.5} ${y - height} ${x + width} ${y} L ${x + width} 1080 L ${x} 1080 Z`);
+  hill.setAttribute('fill', color);
+  g.appendChild(hill);
+  return g;
+}
+
+function drawBackground() {
+  cloudGroup.innerHTML = '';
+  hillsGroup.innerHTML = '';
+
+  const cloudPositions = [
+    [260, 160, 1.0, 0.8],
+    [775, 215, 1.2, 0.9],
+    [1350, 180, 0.9, 0.7]
+  ];
+
+  cloudPositions.forEach(([x, y, scale, opacity]) => {
+    cloudGroup.appendChild(createCloud(x, y, scale, opacity));
+  });
+
+  const hillData = [
+    [0, 760, 780, 150, '#7bd588'],
+    [600, 720, 900, 180, '#76ca7d'],
+    [1200, 760, 700, 150, '#67b86d']
+  ];
+
+  hillData.forEach(([x, y, width, height, color]) => {
+    hillsGroup.appendChild(createHill(x, y, width, height, color));
+  });
+}
+
+function createFriendlyAnimal(type, x, y, scale = 1, tilt = 0, bounce = 0) {
+  const g = document.createElementNS(svgNS, 'g');
+  g.setAttribute('class', 'character floaty');
+  g.setAttribute('transform', `translate(${x} ${y}) rotate(${tilt}) scale(${scale})`);
 
   const body = document.createElementNS(svgNS, 'ellipse');
   const face = document.createElementNS(svgNS, 'circle');
-  const eyeLeft = document.createElementNS(svgNS, 'circle');
-  const eyeRight = document.createElementNS(svgNS, 'circle');
+  const earL = document.createElementNS(svgNS, 'circle');
+  const earR = document.createElementNS(svgNS, 'circle');
+  const eyeL = document.createElementNS(svgNS, 'circle');
+  const eyeR = document.createElementNS(svgNS, 'circle');
   const smile = document.createElementNS(svgNS, 'path');
-  const earLeft = document.createElementNS(svgNS, 'circle');
-  const earRight = document.createElementNS(svgNS, 'circle');
+  const nose = document.createElementNS(svgNS, 'circle');
   const leg1 = document.createElementNS(svgNS, 'rect');
   const leg2 = document.createElementNS(svgNS, 'rect');
   const leg3 = document.createElementNS(svgNS, 'rect');
   const leg4 = document.createElementNS(svgNS, 'rect');
 
-  const defs = animalDefs[type] || animalDefs.sheep;
+  const palette = {
+    sheep: { body: '#f9fbff', face: '#f6f3ff', ear: '#f3d7bf', accent: '#7d94ff', eye: '#201a26' },
+    cow: { body: '#f5efe9', face: '#fff8ee', ear: '#d19563', accent: '#4d4d5e', eye: '#222222' },
+    pig: { body: '#ffbfd2', face: '#ffdfe9', ear: '#f4b7c9', accent: '#ff8ca1', eye: '#2a2229' },
+    chicken: { body: '#f7e788', face: '#fff3bc', ear: '#f8d89f', accent: '#ff8a5b', eye: '#1f1f1f' },
+    spider: { body: '#5d3b7c', face: '#7f4bab', ear: '#d9c1ff', accent: '#dcb7ff', eye: '#0c0c0c' },
+    duck: { body: '#ffd765', face: '#fff3b1', ear: '#f4c778', accent: '#7fd8ff', eye: '#1b1b1b' },
+    lamb: { body: '#ffffff', face: '#f4f4ff', ear: '#f2d5be', accent: '#8b91ff', eye: '#1d1d1d' },
+    star: { body: '#ffd75d', face: '#fff0ad', ear: '#ffd75d', accent: '#ff8a5b', eye: '#1d1d1d' },
+    mouse: { body: '#fff1e6', face: '#ffefe1', ear: '#f0d3c5', accent: '#ffad8d', eye: '#1d1d1d' },
+    egg: { body: '#fffaf0', face: '#fffaf0', ear: '#f5d9a8', accent: '#ffb778', eye: '#191919' }
+  }[type] || palette.sheep;
 
   body.setAttribute('cx', '0');
-  body.setAttribute('cy', '0');
-  body.setAttribute('rx', '70');
-  body.setAttribute('ry', '52');
-  body.setAttribute('fill', defs.color);
-  body.setAttribute('stroke', '#1e1e1e');
-  body.setAttribute('stroke-width', '4');
+  body.setAttribute('cy', '20');
+  body.setAttribute('rx', type === 'egg' ? 72 : 100);
+  body.setAttribute('ry', type === 'egg' ? 94 : 84);
+  body.setAttribute('fill', palette.body);
+  body.setAttribute('stroke', 'rgba(36,36,36,0.18)');
+  body.setAttribute('stroke-width', '5');
 
   face.setAttribute('cx', '0');
-  face.setAttribute('cy', '-16');
-  face.setAttribute('r', '36');
-  face.setAttribute('fill', defs.accent);
+  face.setAttribute('cy', '-8');
+  face.setAttribute('r', type === 'spider' ? 38 : type === 'egg' ? 42 : 44);
+  face.setAttribute('fill', palette.face);
+  face.setAttribute('stroke', 'rgba(36,36,36,0.08)');
+  face.setAttribute('stroke-width', '3');
 
-  eyeLeft.setAttribute('cx', '-12');
-  eyeLeft.setAttribute('cy', '-18');
-  eyeLeft.setAttribute('r', '5');
-  eyeLeft.setAttribute('fill', '#111');
+  earL.setAttribute('cx', type === 'spider' ? '-34' : '-30');
+  earL.setAttribute('cy', type === 'spider' ? '-52' : '-62');
+  earL.setAttribute('r', type === 'spider' ? 8 : 12);
+  earL.setAttribute('fill', palette.ear);
 
-  eyeRight.setAttribute('cx', '12');
-  eyeRight.setAttribute('cy', '-18');
-  eyeRight.setAttribute('r', '5');
-  eyeRight.setAttribute('fill', '#111');
+  earR.setAttribute('cx', type === 'spider' ? '34' : '30');
+  earR.setAttribute('cy', type === 'spider' ? '-52' : '-62');
+  earR.setAttribute('r', type === 'spider' ? 8 : 12);
+  earR.setAttribute('fill', palette.ear);
 
-  smile.setAttribute('d', 'M -16 4 Q 0 18 16 4');
+  eyeL.setAttribute('cx', type === 'egg' ? '-18' : '-18');
+  eyeL.setAttribute('cy', '-18');
+  eyeL.setAttribute('r', '6');
+  eyeL.setAttribute('fill', palette.eye);
+
+  eyeR.setAttribute('cx', '18');
+  eyeR.setAttribute('cy', '-18');
+  eyeR.setAttribute('r', '6');
+  eyeR.setAttribute('fill', palette.eye);
+
+  nose.setAttribute('cx', '0');
+  nose.setAttribute('cy', '-2');
+  nose.setAttribute('r', type === 'egg' ? 4 : 5);
+  nose.setAttribute('fill', palette.accent);
+
+  smile.setAttribute('d', 'M -22 14 Q 0 32 22 14');
   smile.setAttribute('fill', 'none');
-  smile.setAttribute('stroke', '#111');
-  smile.setAttribute('stroke-width', '4');
+  smile.setAttribute('stroke', '#222');
+  smile.setAttribute('stroke-width', '5');
   smile.setAttribute('stroke-linecap', 'round');
 
-  earLeft.setAttribute('cx', '-28');
-  earLeft.setAttribute('cy', '-60');
-  earLeft.setAttribute('r', '10');
-  earLeft.setAttribute('fill', defs.ear);
-
-  earRight.setAttribute('cx', '28');
-  earRight.setAttribute('cy', '-60');
-  earRight.setAttribute('r', '10');
-  earRight.setAttribute('fill', defs.ear);
-
-  leg1.setAttribute('x', '-36');
-  leg1.setAttribute('y', '42');
-  leg1.setAttribute('width', '12');
-  leg1.setAttribute('height', '38');
-  leg1.setAttribute('rx', '6');
-  leg1.setAttribute('fill', defs.accent);
+  leg1.setAttribute('x', '-42');
+  leg1.setAttribute('y', '72');
+  leg1.setAttribute('width', '16');
+  leg1.setAttribute('height', '32');
+  leg1.setAttribute('rx', '8');
+  leg1.setAttribute('fill', '#e4eaf7');
 
   leg2.setAttribute('x', '-12');
-  leg2.setAttribute('y', '42');
-  leg2.setAttribute('width', '12');
-  leg2.setAttribute('height', '38');
-  leg2.setAttribute('rx', '6');
-  leg2.setAttribute('fill', defs.accent);
+  leg2.setAttribute('y', '72');
+  leg2.setAttribute('width', '16');
+  leg2.setAttribute('height', '32');
+  leg2.setAttribute('rx', '8');
+  leg2.setAttribute('fill', '#e4eaf7');
 
   leg3.setAttribute('x', '12');
-  leg3.setAttribute('y', '42');
-  leg3.setAttribute('width', '12');
-  leg3.setAttribute('height', '38');
-  leg3.setAttribute('rx', '6');
-  leg3.setAttribute('fill', defs.accent);
+  leg3.setAttribute('y', '72');
+  leg3.setAttribute('width', '16');
+  leg3.setAttribute('height', '32');
+  leg3.setAttribute('rx', '8');
+  leg3.setAttribute('fill', '#e4eaf7');
 
-  leg4.setAttribute('x', '36');
-  leg4.setAttribute('y', '42');
-  leg4.setAttribute('width', '12');
-  leg4.setAttribute('height', '38');
-  leg4.setAttribute('rx', '6');
-  leg4.setAttribute('fill', defs.accent);
+  leg4.setAttribute('x', '42');
+  leg4.setAttribute('y', '72');
+  leg4.setAttribute('width', '16');
+  leg4.setAttribute('height', '32');
+  leg4.setAttribute('rx', '8');
+  leg4.setAttribute('fill', '#e4eaf7');
 
-  animal.appendChild(body);
-  animal.appendChild(face);
-  animal.appendChild(earLeft);
-  animal.appendChild(earRight);
-  animal.appendChild(eyeLeft);
-  animal.appendChild(eyeRight);
-  animal.appendChild(smile);
-  animal.appendChild(leg1);
-  animal.appendChild(leg2);
-  animal.appendChild(leg3);
-  animal.appendChild(leg4);
+  g.append(body, face, earL, earR, eyeL, eyeR, nose, smile, leg1, leg2, leg3, leg4);
 
-  return animal;
-}
-
-function createStar(x, y, radius, fill = '#ffd75d') {
-  const star = document.createElementNS(svgNS, 'g');
-  star.setAttribute('class', 'star');
-  star.setAttribute('transform', `translate(${x} ${y})`);
-
-  const points = [];
-  for (let i = 0; i < 10; i++) {
-    const angle = (Math.PI / 5) * i - Math.PI / 2;
-    const r = i % 2 === 0 ? radius : radius * 0.5;
-    const px = Math.cos(angle) * r;
-    const py = Math.sin(angle) * r;
-    points.push(`${px},${py}`);
+  if (type === 'spider') {
+    const web1 = document.createElementNS(svgNS, 'line');
+    const web2 = document.createElementNS(svgNS, 'line');
+    web1.setAttribute('x1', '-48'); web1.setAttribute('y1', '110'); web1.setAttribute('x2', '-48'); web1.setAttribute('y2', '230');
+    web2.setAttribute('x1', '48'); web2.setAttribute('y1', '110'); web2.setAttribute('x2', '48'); web2.setAttribute('y2', '230');
+    web1.setAttribute('stroke', '#f1d9ff'); web1.setAttribute('stroke-width', '4');
+    web2.setAttribute('stroke', '#f1d9ff'); web2.setAttribute('stroke-width', '4');
+    g.append(web1, web2);
   }
 
-  const polygon = document.createElementNS(svgNS, 'polygon');
-  polygon.setAttribute('points', points.join(' '));
-  polygon.setAttribute('fill', fill);
-  polygon.setAttribute('stroke', '#fff6b7');
-  polygon.setAttribute('stroke-width', '3');
-  star.appendChild(polygon);
-
-  return star;
+  return g;
 }
 
-function clearAnimals() {
-  while (animalsLayer.firstChild) {
-    animalsLayer.removeChild(animalsLayer.firstChild);
-  }
+function clearScene() {
+  sceneCharacters.innerHTML = '';
 }
 
-function renderSceneStars(t) {
-  clearAnimals();
+function renderStars(t) {
+  clearScene();
+  const starColors = ['#ffd75d', '#ffe7a3', '#ff9ac5', '#a4d4ff'];
   for (let i = 0; i < 12; i++) {
-    const star = createStar(250 + i * 130, 180 + (i % 3) * 80, 24 + (i % 5) * 6, i % 2 ? '#ffd75d' : '#f9b2ff');
-    star.setAttribute('transform', `translate(${250 + i * 130} ${180 + (i % 3) * 80}) scale(${0.9 + Math.sin(t * 2 + i) * 0.15})`);
-    animalsLayer.appendChild(star);
+    const star = document.createElementNS(svgNS, 'g');
+    star.setAttribute('transform', `translate(${200 + i * 130} ${150 + (i % 3) * 120}) scale(${0.8 + (i % 3) * 0.2})`);
+    const poly = document.createElementNS(svgNS, 'polygon');
+    const points = [];
+    for (let j = 0; j < 10; j++) {
+      const angle = (Math.PI / 5) * j - Math.PI / 2;
+      const rad = j % 2 === 0 ? 28 : 12;
+      points.push(`${Math.cos(angle) * rad},${Math.sin(angle) * rad}`);
+    }
+    poly.setAttribute('points', points.join(' '));
+    poly.setAttribute('fill', starColors[i % starColors.length]);
+    poly.setAttribute('stroke', '#fff0b3');
+    poly.setAttribute('stroke-width', '4');
+    star.appendChild(poly);
+    sceneCharacters.appendChild(star);
   }
 
-  const moon = document.createElementNS(svgNS, 'circle');
-  moon.setAttribute('cx', '1500');
-  moon.setAttribute('cy', '200');
-  moon.setAttribute('r', '80');
-  moon.setAttribute('fill', '#fff0c3');
-  moon.setAttribute('opacity', '0.85');
-  animalsLayer.appendChild(moon);
+  const lamb = createFriendlyAnimal('lamb', 960, 760, 1.15, 0, 0);
+  sceneCharacters.appendChild(lamb);
+  const bird = createFriendlyAnimal('chicken', 660, 730, 0.9, 0, 0);
+  sceneCharacters.appendChild(bird);
+  const bird2 = createFriendlyAnimal('chicken', 1260, 730, 0.9, 0, 0);
+  sceneCharacters.appendChild(bird2);
 }
 
-function renderSceneFarm(t) {
-  clearAnimals();
-  ['cow', 'pig', 'chicken', 'duck'].forEach((type, i) => {
-    const animal = createAnimal(type, 330 + i * 320, 760, 1.2, 'jump');
-    animal.setAttribute('transform', `translate(${330 + i * 320} ${760 + Math.sin(t * 4 + i) * 12}) scale(1.25)`);
-    animalsLayer.appendChild(animal);
+function renderFarm(t) {
+  clearScene();
+  const names = ['cow', 'pig', 'chicken', 'duck'];
+  names.forEach((type, idx) => {
+    const x = 360 + idx * 350;
+    const y = 760 + Math.sin(t * 4 + idx) * 10;
+    const animal = createFriendlyAnimal(type, x, y, 1.0 + idx * 0.04, 0, 0);
+    sceneCharacters.appendChild(animal);
   });
 
   const barn = document.createElementNS(svgNS, 'g');
-  const barnBody = document.createElementNS(svgNS, 'rect');
-  barnBody.setAttribute('x', '1170');
-  barnBody.setAttribute('y', '520');
-  barnBody.setAttribute('width', '240');
-  barnBody.setAttribute('height', '200');
-  barnBody.setAttribute('rx', '18');
-  barnBody.setAttribute('fill', '#d59757');
-  barnBody.setAttribute('stroke', '#8a4d18');
-  barnBody.setAttribute('stroke-width', '6');
-
+  const body = document.createElementNS(svgNS, 'rect');
+  body.setAttribute('x', '1310'); body.setAttribute('y', '570'); body.setAttribute('width', '240'); body.setAttribute('height', '200'); body.setAttribute('fill', '#d69157'); body.setAttribute('rx', '20'); body.setAttribute('stroke', '#8c4f1d'); body.setAttribute('stroke-width', '8');
   const roof = document.createElementNS(svgNS, 'polygon');
-  roof.setAttribute('points', '1140,520 1290,430 1440,520');
-  roof.setAttribute('fill', '#b75d2e');
-  roof.setAttribute('stroke', '#7f3b19');
-  roof.setAttribute('stroke-width', '6');
-
+  roof.setAttribute('points', '1280,570 1450,450 1620,570');
+  roof.setAttribute('fill', '#bb5f2d');
+  roof.setAttribute('stroke', '#7d3c18');
+  roof.setAttribute('stroke-width', '8');
   const door = document.createElementNS(svgNS, 'rect');
-  door.setAttribute('x', '1260');
-  door.setAttribute('y', '620');
-  door.setAttribute('width', '70');
-  door.setAttribute('height', '100');
-  door.setAttribute('rx', '8');
-  door.setAttribute('fill', '#7f4d1d');
-
-  barn.appendChild(roof);
-  barn.appendChild(barnBody);
-  barn.appendChild(door);
-  animalsLayer.appendChild(barn);
+  door.setAttribute('x', '1410'); door.setAttribute('y', '650'); door.setAttribute('width', '70'); door.setAttribute('height', '120'); door.setAttribute('fill', '#7a4a24'); door.setAttribute('rx', '10');
+  barn.append(body, roof, door);
+  sceneCharacters.appendChild(barn);
 }
 
-function renderSceneSheep(t) {
-  clearAnimals();
+function renderSheep(t) {
+  clearScene();
   for (let i = 0; i < 4; i++) {
-    const sheep = createAnimal('sheep', 350 + i * 350, 780 - Math.sin(t * 5 + i) * 18, 1.1, 'jump');
-    sheep.setAttribute('transform', `translate(${350 + i * 350} ${780 - Math.sin(t * 5 + i) * 18}) scale(1.1)`);
-    animalsLayer.appendChild(sheep);
+    const sheep = createFriendlyAnimal('sheep', 360 + i * 350, 760 + Math.sin(t * 5 + i) * 18, 1.1, 0, 0);
+    sceneCharacters.appendChild(sheep);
   }
 }
 
-function renderSceneSpider(t) {
-  clearAnimals();
-  const spider = createAnimal('spider', 980, 620, 1.3, 'jump');
-  spider.setAttribute('transform', `translate(980 ${620 - Math.sin(t * 6) * 12}) scale(1.3)`);
-  animalsLayer.appendChild(spider);
+function renderSpider(t) {
+  clearScene();
+  const spider = createFriendlyAnimal('spider', 980, 610 + Math.sin(t * 7) * 12, 1.2, 0, 0);
+  sceneCharacters.appendChild(spider);
 
   const web = document.createElementNS(svgNS, 'path');
-  web.setAttribute('d', 'M 700 250 Q 980 160 1260 250');
+  web.setAttribute('d', 'M 720 240 Q 980 180 1240 240');
   web.setAttribute('fill', 'none');
-  web.setAttribute('stroke', '#f6e7ff');
-  web.setAttribute('stroke-width', '4');
-  web.setAttribute('stroke-dasharray', '12 18');
-  animalsLayer.appendChild(web);
+  web.setAttribute('stroke', '#f5e9ff');
+  web.setAttribute('stroke-width', '5');
+  web.setAttribute('stroke-dasharray', '14 18');
+  sceneCharacters.appendChild(web);
 
   for (let i = 0; i < 8; i++) {
     const line = document.createElementNS(svgNS, 'line');
-    const x = 700 + i * 80;
+    const x = 720 + i * 80;
     line.setAttribute('x1', String(x));
-    line.setAttribute('y1', '250');
+    line.setAttribute('y1', '240');
     line.setAttribute('x2', String(980 + i * 12));
-    line.setAttribute('y2', '850');
-    line.setAttribute('stroke', 'rgba(255,255,255,0.55)');
-    line.setAttribute('stroke-width', '2');
-    animalsLayer.appendChild(line);
+    line.setAttribute('y2', '860');
+    line.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+    line.setAttribute('stroke-width', '2.5');
+    sceneCharacters.appendChild(line);
   }
 }
 
-function renderSceneHumpty(t) {
-  clearAnimals();
+function renderHumpty(t) {
+  clearScene();
   const wall = document.createElementNS(svgNS, 'rect');
-  wall.setAttribute('x', '350');
-  wall.setAttribute('y', '430');
-  wall.setAttribute('width', '1220');
-  wall.setAttribute('height', '170');
-  wall.setAttribute('rx', '20');
-  wall.setAttribute('fill', '#f5d7a6');
-  wall.setAttribute('stroke', '#b77a32');
-  wall.setAttribute('stroke-width', '8');
-  animalsLayer.appendChild(wall);
+  wall.setAttribute('x', '320'); wall.setAttribute('y', '470'); wall.setAttribute('width', '1280'); wall.setAttribute('height', '170'); wall.setAttribute('rx', '20'); wall.setAttribute('fill', '#f2d3a1'); wall.setAttribute('stroke', '#b8762a'); wall.setAttribute('stroke-width', '6');
+  sceneCharacters.appendChild(wall);
 
-  const egg = document.createElementNS(svgNS, 'ellipse');
-  egg.setAttribute('cx', '960');
-  egg.setAttribute('cy', '420');
-  egg.setAttribute('rx', '70');
-  egg.setAttribute('ry', '110');
-  egg.setAttribute('fill', '#fefcf0');
-  egg.setAttribute('stroke', '#d6b77a');
-  egg.setAttribute('stroke-width', '8');
-  animalsLayer.appendChild(egg);
-
-  const face = document.createElementNS(svgNS, 'circle');
-  face.setAttribute('cx', '960');
-  face.setAttribute('cy', '380');
-  face.setAttribute('r', '16');
-  face.setAttribute('fill', '#111');
-  animalsLayer.appendChild(face);
-
-  const mouth = document.createElementNS(svgNS, 'path');
-  mouth.setAttribute('d', 'M 944 400 Q 960 410 976 400');
-  mouth.setAttribute('fill', 'none');
-  mouth.setAttribute('stroke', '#111');
-  mouth.setAttribute('stroke-width', '5');
-  mouth.setAttribute('stroke-linecap', 'round');
-  animalsLayer.appendChild(mouth);
+  const egg = createFriendlyAnimal('egg', 960, 430 + Math.sin(t * 4) * 10, 1.2, 0, 0);
+  sceneCharacters.appendChild(egg);
 }
 
-function renderSceneClock(t) {
-  clearAnimals();
+function renderClock(t) {
+  clearScene();
   const clock = document.createElementNS(svgNS, 'g');
   const ring = document.createElementNS(svgNS, 'circle');
-  ring.setAttribute('cx', '960');
-  ring.setAttribute('cy', '500');
-  ring.setAttribute('r', '180');
-  ring.setAttribute('fill', '#fff8dd');
-  ring.setAttribute('stroke', '#f5a623');
-  ring.setAttribute('stroke-width', '12');
+  ring.setAttribute('cx', '960'); ring.setAttribute('cy', '500'); ring.setAttribute('r', '180'); ring.setAttribute('fill', '#fff9e8'); ring.setAttribute('stroke', '#f5b93d'); ring.setAttribute('stroke-width', '12');
   clock.appendChild(ring);
 
   for (let i = 0; i < 12; i++) {
     const tick = document.createElementNS(svgNS, 'line');
-    const angle = (Math.PI / 6) * i - Math.PI / 2;
-    const innerX = 960 + Math.cos(angle) * 135;
-    const innerY = 500 + Math.sin(angle) * 135;
-    const outerX = 960 + Math.cos(angle) * 170;
-    const outerY = 500 + Math.sin(angle) * 170;
-    tick.setAttribute('x1', innerX);
-    tick.setAttribute('y1', innerY);
-    tick.setAttribute('x2', outerX);
-    tick.setAttribute('y2', outerY);
-    tick.setAttribute('stroke', '#6c4f9b');
-    tick.setAttribute('stroke-width', '6');
+    const a = (Math.PI / 6) * i - Math.PI / 2;
+    const innerX = 960 + Math.cos(a) * 135;
+    const innerY = 500 + Math.sin(a) * 135;
+    const outerX = 960 + Math.cos(a) * 175;
+    const outerY = 500 + Math.sin(a) * 175;
+    tick.setAttribute('x1', String(innerX)); tick.setAttribute('y1', String(innerY)); tick.setAttribute('x2', String(outerX)); tick.setAttribute('y2', String(outerY)); tick.setAttribute('stroke', '#7d72c8'); tick.setAttribute('stroke-width', '7');
     clock.appendChild(tick);
   }
 
-  const handMinutes = document.createElementNS(svgNS, 'line');
-  handMinutes.setAttribute('x1', '960');
-  handMinutes.setAttribute('y1', '500');
-  handMinutes.setAttribute('x2', String(960 + Math.cos(t * 2.5) * 120));
-  handMinutes.setAttribute('y2', String(500 + Math.sin(t * 2.5) * 120));
-  handMinutes.setAttribute('stroke', '#6c4f9b');
-  handMinutes.setAttribute('stroke-width', '14');
-  handMinutes.setAttribute('stroke-linecap', 'round');
-  clock.appendChild(handMinutes);
+  const minuteHand = document.createElementNS(svgNS, 'line');
+  minuteHand.setAttribute('x1', '960'); minuteHand.setAttribute('y1', '500'); minuteHand.setAttribute('x2', String(960 + Math.cos(t * 2.5) * 120)); minuteHand.setAttribute('y2', String(500 + Math.sin(t * 2.5) * 120)); minuteHand.setAttribute('stroke', '#7d72c8'); minuteHand.setAttribute('stroke-width', '12'); minuteHand.setAttribute('stroke-linecap', 'round');
+  clock.appendChild(minuteHand);
 
-  const handHours = document.createElementNS(svgNS, 'line');
-  handHours.setAttribute('x1', '960');
-  handHours.setAttribute('y1', '500');
-  handHours.setAttribute('x2', String(960 + Math.cos((t * 2.5) / 12) * 80));
-  handHours.setAttribute('y2', String(500 + Math.sin((t * 2.5) / 12) * 80));
-  handHours.setAttribute('stroke', '#ef476f');
-  handHours.setAttribute('stroke-width', '10');
-  handHours.setAttribute('stroke-linecap', 'round');
-  clock.appendChild(handHours);
+  const hourHand = document.createElementNS(svgNS, 'line');
+  hourHand.setAttribute('x1', '960'); hourHand.setAttribute('y1', '500'); hourHand.setAttribute('x2', String(960 + Math.cos((t * 2.5) / 12) * 82)); hourHand.setAttribute('y2', String(500 + Math.sin((t * 2.5) / 12) * 82)); hourHand.setAttribute('stroke', '#fe7d9d'); hourHand.setAttribute('stroke-width', '9'); hourHand.setAttribute('stroke-linecap', 'round');
+  clock.appendChild(hourHand);
 
   const center = document.createElementNS(svgNS, 'circle');
-  center.setAttribute('cx', '960');
-  center.setAttribute('cy', '500');
-  center.setAttribute('r', '16');
-  center.setAttribute('fill', '#ff7b7b');
+  center.setAttribute('cx', '960'); center.setAttribute('cy', '500'); center.setAttribute('r', '16'); center.setAttribute('fill', '#ff8a7b');
   clock.appendChild(center);
 
-  animalsLayer.appendChild(clock);
+  sceneCharacters.appendChild(clock);
 
-  const mouse = createAnimal('duck', 1100, 700, 1.0, 'jump');
-  mouse.setAttribute('transform', `translate(1100 ${700 + Math.sin(t * 4) * 18}) scale(1.0)`);
-  animalsLayer.appendChild(mouse);
+  const mouse = createFriendlyAnimal('mouse', 1110, 720 + Math.sin(t * 5) * 18, 1.0, 0, 0);
+  sceneCharacters.appendChild(mouse);
 }
 
-function renderCurrentScene(t) {
-  const scene = lyricSegments[state.currentIndex];
-  if (!scene) return;
-
-  if (scene.scene === 'stars') renderSceneStars(t);
-  if (scene.scene === 'farm') renderSceneFarm(t);
-  if (scene.scene === 'sheep') renderSceneSheep(t);
-  if (scene.scene === 'spider') renderSceneSpider(t);
-  if (scene.scene === 'humpty') renderSceneHumpty(t);
-  if (scene.scene === 'clock') renderSceneClock(t);
-
-  const palette = scene.palette || ['#ffd75d', '#7b68ee', '#ff6b8a'];
-  document.documentElement.style.setProperty('--primary', palette[0]);
-  document.documentElement.style.setProperty('--secondary', palette[1]);
-  document.documentElement.style.setProperty('--accent', palette[2]);
+function renderSceneByName(name, t) {
+  if (name === 'stars') renderStars(t);
+  if (name === 'farm') renderFarm(t);
+  if (name === 'sheep') renderSheep(t);
+  if (name === 'spider') renderSpider(t);
+  if (name === 'humpty') renderHumpty(t);
+  if (name === 'clock') renderClock(t);
 }
 
-function updateLyrics() {
-  const active = lyricSegments[state.currentIndex];
-  if (!active) return;
-  lyricText.textContent = active.text;
-  title.setAttribute('fill', active.palette[0]);
-  subtitle.setAttribute('fill', active.palette[1]);
-}
-
-function tick(now) {
-  if (!state.start) state.start = now;
-
-  state.time = (now - state.start) / 1000;
-  const segment = lyricSegments[state.currentIndex];
+function advanceScene(now) {
+  const segment = segments[sceneState.index];
   if (!segment) return;
 
-  if (state.time > segment.duration) {
-    state.currentIndex = (state.currentIndex + 1) % lyricSegments.length;
-    state.start = now;
-    updateLyrics();
+  if (sceneState.timer >= sceneState.segmentDuration) {
+    sceneState.index = (sceneState.index + 1) % segments.length;
+    sceneState.timer = 0;
+    const nextSegment = segments[sceneState.index];
+    lyricText.textContent = nextSegment.text;
+    mainTitle.textContent = nextSegment.title;
+    subtitle.textContent = nextSegment.subtitle;
+    setTextColors(nextSegment.palette);
   }
 
-  const localT = (now - state.start) / 1000;
-  renderCurrentScene(localT);
-  requestAnimationFrame(tick);
+  const current = segments[sceneState.index];
+  renderSceneByName(current.scene, sceneState.timer);
+  sceneState.timer += 1 / 60;
 }
 
-updateLyrics();
-requestAnimationFrame(tick);
+function walk(now) {
+  if (!sceneState.lastFrame) sceneState.lastFrame = now;
+  const delta = (now - sceneState.lastFrame) / 1000;
+  sceneState.lastFrame = now;
+
+  drawBackground();
+  advanceScene(now);
+  requestAnimationFrame(walk);
+}
+
+function start() {
+  const firstCell = segments[0];
+  lyricText.textContent = firstCell.text;
+  mainTitle.textContent = firstCell.title;
+  subtitle.textContent = firstCell.subtitle;
+  setTextColors(firstCell.palette);
+  drawBackground();
+  renderSceneByName(firstCell.scene, 0);
+  requestAnimationFrame(walk);
+}
+
+start();

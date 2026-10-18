@@ -4,27 +4,26 @@
 
 html, body {
   margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;
   background: #0d1b2a;
-  font-family: "Segoe UI", sans-serif;
+  overflow: hidden;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
 }
 
 body {
   display: flex;
-  justify-content: center;
   align-items: center;
-  overflow: hidden;
+  justify-content: center;
 }
 
-.frame {
+.canvas-wrap {
   width: 100vw;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top, #eaf6ff, #d3f1ff 35%, #9ae0ff 70%, #5bb7ea 100%);
+  background: linear-gradient(180deg, #99d7ff 0%, #d8f4ff 50%, #cbeffc 100%);
 }
 
 #scene {
@@ -36,63 +35,64 @@ body {
   background: transparent;
 }
 
-.title {
+#mainTitle {
   font-size: 92px;
-  font-weight: 800;
+  font-weight: 900;
   fill: #ffffff;
   letter-spacing: 4px;
-  text-shadow: 0 6px 0 rgba(44, 83, 181, 0.25);
+  text-shadow: 0 10px 0 rgba(44, 83, 181, 0.2);
 }
 
-.subtitle {
-  font-size: 40px;
-  font-weight: 700;
-  fill: #fff2a8;
-  letter-spacing: 8px;
-}
-
-.lyric-text {
-  font-size: 54px;
+#subtitle {
+  font-size: 38px;
   font-weight: 800;
-  fill: #fff;
+  fill: #fff3a8;
+  letter-spacing: 10px;
+}
+
+#lyricText {
+  font-size: 52px;
+  font-weight: 800;
+  fill: #ffffff;
   letter-spacing: 2px;
-  text-shadow: 0 6px 0 rgba(53, 48, 161, 0.28);
+  text-shadow: 0 6px 0 rgba(53, 48, 161, 0.2);
 }
 
-.cloud {
-  animation: floatCloud 12s ease-in-out infinite alternate;
-}
-
-.cloud-2 {
-  animation-delay: 1.5s;
-}
-
-@keyframes floatCloud {
-  0% { transform: translateX(-10px) translateY(0); }
-  100% { transform: translateX(18px) translateY(-8px); }
-}
-
-.char {
+.character {
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.star {
-  opacity: 0.9;
+.cloud {
+  animation: drift 12s ease-in-out infinite alternate;
 }
 
-.jump {
-  animation: jump 1.4s ease-in-out infinite alternate;
+@keyframes drift {
+  0% { transform: translateX(-8px) translateY(0); }
+  100% { transform: translateX(16px) translateY(-10px); }
 }
 
-@keyframes jump {
+.floaty {
+  animation: bob 2s ease-in-out infinite alternate;
+}
+
+@keyframes bob {
   0% { transform: translateY(0); }
-  50% { transform: translateY(-18px); }
-  100% { transform: translateY(0); }
+  100% { transform: translateY(-16px); }
+}
+
+.wiggle {
+  animation: wiggle 2s ease-in-out infinite alternate;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(-3deg); }
+  50% { transform: rotate(4deg); }
+  100% { transform: rotate(-3deg); }
 }
 
 @media (max-width: 900px) {
-  .title { font-size: 62px; }
-  .subtitle { font-size: 26px; }
-  .lyric-text { font-size: 36px; }
+  #mainTitle { font-size: 64px; }
+  #subtitle { font-size: 28px; }
+  #lyricText { font-size: 34px; }
 }

@@ -1,87 +1,67 @@
-# keaunis-sensory
+A polished, child-friendly nursery rhyme video project for YouTube with:
+- 2D sensory animation using SVG + JavaScript
+- 3D Blender scene starter for a second version
+- natural-sounding narration setup
+- royalty-free music guidance
+- render workflow for 1920×1080 export
 
-A playful nursery rhyme video project for YouTube with two versions:
-- 2D colorful animal animation (SVG + JavaScript)
-- 3D low-poly animal animation (Blender Python script)
+The project is intended for very young viewers, with high-contrast colors, large rounded shapes, calm motion, and friendly animal characters.
 
-This repo is designed to help you render a vibrant, sensory-friendly nursery rhyme video that is optimized for very young viewers: oversized shapes, high contrast, smooth movement, large clean typography, warm and bright colors, and soft visual pacing.
+## Project goal
+
+Create a ~5-minute nursery rhyme experience featuring bright, engaging animal characters and warm, high-contrast visuals, designed to attract a baby’s attention without overstimulating the viewer.
 
 ## Included
 
-- 2D animated nursery rhyme scenes
-- 3D Blender animation script for a stylized animal version
-- TTS narration setup for natural-sounding voiceovers
-- Music guidance for royalty-free background tracks
-- Rendering instructions for local export to MP4
+- 2D scene system for a nursery rhyme sequence
+- friendly animal character art and SVG starter assets
+- a 3D Blender scene base for a stylized alternative version
+- narration generation script using Edge TTS for more natural-sounding voices
+- royalty-free music notes and safe-use guidance
+- render steps for local MP4 export
 
-## Quick start
+## Recommended local setup
 
-### 1) Install Node tools
+### Install Node dependencies
 
 ```bash
 npm install
 ```
 
-### 2) Run the 2D scene preview locally
+### Start the 2D preview locally
 
 ```bash
 npm run 2d:serve
 ```
 
-Then open the local URL shown in the terminal, usually http://localhost:4173 or http://localhost:8000.
+This serves the 2D project from the `2d/` folder. Open the local URL shown in the terminal.
 
-### 3) Render the 2D video
+### Render the 2D video
 
 ```bash
 npm run 2d:render
 ```
 
-This uses Playwright to export PNG frames and FFmpeg to compile them into a video file in `output/`.
+This captures frames with Playwright and exports an MP4 with FFmpeg.
 
-### 4) Generate narration
+### Generate narration audio
 
 ```bash
 python3 -m pip install edge-tts
 python3 scripts/tts_generate.py --voice "en-US-JennyNeural" --text-file scripts/lyrics.txt --output output/narration.mp3
 ```
 
-### 5) 3D Blender render
+### Blender 3D render
 
-Open Blender, then:
+Open Blender and run:
 
 ```bash
 blender --background --python 3d/nursery_3d.py -- --output output/3d_render.mp4
 ```
 
-For a more precise Blender workflow, open the script from the scripting tab and run it inside Blender.
+## Nursery rhyme sequence
 
-## Folder structure
-
-```text
-.
-├── README.md
-├── package.json
-├── .gitignore
-├── scripts/
-│   ├── lyrics.txt
-│   ├── tts_generate.py
-│   └── render_2d.mjs
-├── 2d/
-│   ├── index.html
-│   ├── styles.css
-│   └── scene.js
-├── 3d/
-│   └── nursery_3d.py
-├── assets/
-│   └── music/
-│       └── README.md
-└── output/
-```
-
-## Nursery rhyme flow
-
-The default rhythm follows a baby-friendly sequence:
-
+The studio flow is:
 1. Twinkle Twinkle Little Star
 2. Old MacDonald Had a Farm
 3. Baa Baa Black Sheep
@@ -89,242 +69,60 @@ The default rhythm follows a baby-friendly sequence:
 5. Humpty Dumpty
 6. Hickory Dickory Dock
 
-Each segment is timed to a short, colorful animation sequence so the total runtime stays roughly 5 minutes.
+Each segment gets a short, visually friendly animation rhythm to keep the total runtime near 5 minutes.
 
-## Color palette
+## Style goals
 
-This project intentionally uses high-contrast and attention-grabbing but soft, friendly colors:
+- warm bright colors: yellow, blue, coral, green, magenta
+- rounded forms and big facial features
+- high readability on screen
+- motion that is slow, smooth, and easy to track
+- gentle loops and light background movement
 
-- bright blue
-- warm yellow
-- vivid red
-- teal
-- magenta
-- pastel green
+## File overview
 
-These are chosen to be engaging for very young viewers while preserving readability and visual clarity.
+```text
+.
+├── README.md
+├── package.json
+├── scripts/
+│   ├── lyrics.txt
+│   ├── storyboard.md
+│   ├── render_2d.mjs
+│   └── tts_generate.py
+├── 2d/
+│   ├── index.html
+│   ├── styles.css
+│   └── scene.js
+├── 3d/
+│   └── nursery_3d.py
+├── assets/
+│   ├── svg/
+│   └── music/
+│       └── README.md
+├── output/
+└── .gitignore
+```
 
-## Voiceover note
+## Required tools
 
-The repo includes TTS generation using Microsoft Edge neural voices, which are more natural than generic robotic TTS and work well for a child-friendly style.
+- Node.js
+- FFmpeg
+- Python 3
+- Blender (for 3D version)
+- Playwright
+- Edge TTS
 
-Recommended first voice:
-- `en-US-JennyNeural`
+## Notes
 
-## Music note
-
-Use royalty-free music from sources such as:
-- Pixabay Music (CC0 / royalty-free license)
-- Mixkit (commercially safe with standard licensing)
-- Artlist or Epidemic Sound only if you have the proper license
-
-The `assets/music/README.md` file lists suggestions and safe-use notes.
-
-## Rendering targets
-
-Base settings:
-- 1920x1080
-- 30 fps
-- MP4 export
-
-If you want a higher frame rate or higher resolution later, the render pipeline can be adjusted in the scripts.
+- The repo is designed to render locally on your machine.
+- TTS output can be more natural sounding than a generic robot voice when using Edge TTS or another neural voice service.
+- The music should be royalty-free and safe for YouTube; keep it lower in volume than narration.
 
 ## License
 
-The project is released under the MIT License for code, and all nursery lyrics used are public domain.
-
-## Important note
-
-This repo contains the complete render pipeline and production structure. The final export is generated locally on your machine using the included scripts.
-
-For best results, keep your playback and render environment clean and ensure FFmpeg is installed.
-
----
-
-Built for the `keaunis-sensory` project.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Project code: MIT
+- Nursery lyrics: public domain
+- Royalty-free music: use the source license for each track you include
+
+This project is intended as a full local production starter for `keaunis-sensory`.
