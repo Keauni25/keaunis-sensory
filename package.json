@@ -2,10 +2,12 @@
   "name": "keaunis-sensory",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "2D and 3D nursery rhyme visualizer and renderer for YouTube",
   "scripts": {
     "2d:serve": "python3 -m http.server 4173 --directory 2d",
-    "2d:render": "node scripts/render_2d.mjs"
+    "2d:render": "node scripts/render_2d.mjs",
+    "2d:render-final": "node scripts/render_final.mjs --duration 280 --fps 30 --width 1920 --height 1080 --narration output/narration.mp3 --music output/music/soft_kids_piano.mp3 --output output/final_youtube_ready.mp4"
   },
   "dependencies": {
     "playwright": "^1.48.0"
